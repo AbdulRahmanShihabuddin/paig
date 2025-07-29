@@ -34,6 +34,7 @@ if config.get("disable_remote_eval_plugins", False):
 eval_init_config(email='promptfoo@paig.ai', plugin_file_path=config.get("eval_category_file", None))
 
 DISABLE_EVAL_CONCURRENT_LIMIT = str(config.get("disable_eval_concurrent_limit", "false")).lower() == "true"
+DISABLE_REMOTE_EVAL_PLUGINS = str(config.get("disable_remote_eval_plugins", "false")).lower() == "true"
 MAX_CONCURRENT_EVALS = config.get("max_eval_concurrent_limit", 2)
 EVAL_TIMEOUT = config.get("eval_timeout_in_min", 6*60) # 6 hours
 ENABLE_EVAL_VERBOSE = str(config.get("enable_eval_verbose", "false")).lower() == "true"
@@ -310,17 +311,20 @@ class EvaluationService:
     @staticmethod
     async def get_categories(purpose):
         resp = dict()
-        suggested_categories = get_suggested_plugins(purpose)
-        if not isinstance(suggested_categories, dict):
-            raise BadRequestException('Invalid response received for for suggested categories')
-        if suggested_categories['status'] != 'success':
-            raise BadRequestException(suggested_categories['message'])
-        resp['suggested_categories'] = suggested_categories['result']
+        if not DISABLE_REMOTE_EVAL_PLUGINS:
+            suggested_categories = get_suggested_plugins(purpose)
+            if not isinstance(suggested_categories, dict):
+                raise BadRequestException('Invalid response received for for suggested categories')
+            if suggested_categories['status'] != 'success':
+                raise BadRequestException(suggested_categories['message'])
+            resp['suggested_categories'] = suggested_categories['result']
+
         all_categories = get_all_plugins()
         if not isinstance(all_categories, dict):
             raise BadRequestException('Invalid response received for for all categories')
         if all_categories['status'] != 'success':
             raise BadRequestException(all_categories['message'])
+        
         resp['all_categories'] = all_categories['result']
         return resp
 
