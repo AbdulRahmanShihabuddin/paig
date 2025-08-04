@@ -32,16 +32,9 @@ class CEvaluationCategoriesForm extends Component {
   }
 
   handleToggle = () => {
-    const { _vState } = this.props;
-    const evalCategories = _vState.purposeResponse;
-    
-    this.setState((prevState) => {
-      const showSuggested = !prevState.showSuggested;
-      // Keep the existing selections when toggling
-      return {
-        showSuggested
-      };
-    });
+    this.setState((prevState) => ({
+      showSuggested: !prevState.showSuggested,
+    }));
   };
 
   setSelectedCategories = (selectedCategories) => {
