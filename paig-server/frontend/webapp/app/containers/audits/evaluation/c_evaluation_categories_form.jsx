@@ -14,12 +14,21 @@ class CEvaluationCategoriesForm extends Component {
   componentDidMount() {
     const { _vState } = this.props;
     const evalCategories = _vState.purposeResponse;
-    const suggestedCategories = evalCategories.suggested_categories.map((category) => category.Name);
-    this.props.form.refresh({ categories: suggestedCategories });
-    if (suggestedCategories.length === 0) {
-      this.setState({showSuggested: false})
+    const hasSuggestedCategories = evalCategories?.suggested_categories?.length > 0;
+    
+    if (hasSuggestedCategories) {
+      // If there are suggested categories, use them and select them by default
+      const categories = evalCategories.suggested_categories.map((category) => category.Name);
+      this.props.form.refresh({ categories });
+      this.setState({ selectedCategories: categories });
+    } else {
+      // If there are no suggested categories, don't select any by default
+      this.setState({ 
+        showSuggested: false,
+        selectedCategories: [] 
+      });
+      this.props.form.refresh({ categories: [] });
     }
-    this.setState({ selectedCategories: suggestedCategories });
   }
 
   handleToggle = () => {
@@ -30,13 +39,17 @@ class CEvaluationCategoriesForm extends Component {
 
   setSelectedCategories = (selectedCategories) => {
     this.setState({ selectedCategories });
+    this.props.form.refresh({ categories: selectedCategories });
   };
 
   render() {
     const { selectedCategories, showSuggested } = this.state;
     const { _vState } = this.props;
     const evalCategories = _vState.purposeResponse;
-    const filteredCategories = showSuggested ? evalCategories.suggested_categories : evalCategories.all_categories;
+    // Only filter what categories to show, but maintain selections
+    const filteredCategories = showSuggested && evalCategories?.suggested_categories?.length > 0 ? 
+      evalCategories.suggested_categories : 
+      evalCategories.all_categories;
 
     return (
       <VEvaluationCategoriesForm
